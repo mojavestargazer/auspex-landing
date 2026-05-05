@@ -1,5 +1,6 @@
 // Waitlist email capture — POST stores an email, GET returns count
-// (and full list if admin-authenticated).
+// (and full list if admin-authenticated). Optionally sends a
+// notification email to the operator on each signup via Resend.
 //
 // Storage: single Redis key with array of {email, ts, ref, ua}. Capped
 // at 10K entries to bound costs.
@@ -30,6 +31,49 @@ function isValidEmail(s) {
     && s.length >= 5
     && s.length <= 254
     && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+}
+
+// Send a notification email via Resend whenever someone joins the
+// waitlist. Fire-and-forget — the user's signup completes whether or
+// not the notification succeeds. If RESEND_API_KEY isn't set, the
+// function silently no-ops, so the system works either way.
+async function sendNotification(entry, totalCount) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const notifyTo = process.env.NOTIFY_EMAIL;
+  if (!apiKey || !notifyTo) return;
+
+  // Resend's "from" address must be a verified domain in your Resend
+  // dashboard. Until you verify auspexterminal.com, use Resend's
+  // sandbox sender (`onboarding@resend.dev`) which works without setup.
+  // Once you verify your domain, change this to something like
+  // "Auspex Waitlist <noreply@auspexterminal.com>".
+  const fromAddr = process.env.RESEND_FROM || 'Auspex Waitlist <onboarding@resend.dev>';
+
+  const subject = `New Auspex waitlist signup #${totalCount}`;
+  const refLine = entry.ref ? `\nReferrer: ${entry.ref}` : '';
+  const text = `${entry.email}${refLine}\nTotal signups: ${totalCount}\nTimestamp: ${entry.ts}`;
+
+  try {
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        from: fromAddr,
+        to: notifyTo,
+        subject,
+        text,
+      }),
+    });
+    if (!r.ok) {
+      const body = await r.text();
+      console.error('[waitlist notify] Resend returned', r.status, body);
+    }
+  } catch (e) {
+    console.error('[waitlist notify] failed:', e);
+  }
 }
 
 export default async function handler(req, res) {
@@ -65,14 +109,19 @@ export default async function handler(req, res) {
         return res.status(503).json({ error: 'Waitlist temporarily full' });
       }
 
-      list.push({
+      const entry = {
         email,
         ts: new Date().toISOString(),
         ref: req.headers.referer || null,
         ua:  req.headers['user-agent'] || null,
-      });
+      };
+      list.push(entry);
 
       await redis.set(WAITLIST_KEY, list);
+
+      // Fire notification email (silently no-ops if Resend not configured)
+      sendNotification(entry, list.length);
+
       return res.status(200).json({ status: 'registered', count: list.length });
     } catch (e) {
       console.error('[waitlist] write failed:', e);
