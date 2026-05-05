@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auspex — Prediction Market Terminal</title>
+<meta name="description" content="A Bloomberg-style terminal for prediction markets. Live cross-platform pricing across Polymarket, Kalshi, and Polymarket US. Beta access begins June 15.">
+<meta property="og:title" content="Auspex — Prediction Market Terminal">
+<meta property="og:description" content="A Bloomberg-style terminal for prediction markets. Live cross-platform pricing across Polymarket, Kalshi, and Polymarket US.">
+<meta property="og:type" content="website">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg-base: #0A0A10;
+  --bg-surface: #0F0F18;
+  --bg-elevated: #16161F;
+  --border-subtle: #1A1A26;
+  --border-default: #2A2A36;
+  --text-primary: #E8E8F0;
+  --text-secondary: #A8A8B8;
+  --text-muted: #6A6A7A;
+  --accent: #00E676;
+  --accent-dim: #00B85A;
+  --plat-ply: #4DA6FF;
+  --plat-kal: #00B85A;
+  --plat-plu: #9B6FD4;
+
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-ui: 'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 400px;
+  background: radial-gradient(ellipse at center, rgba(0, 230, 118, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.top-strip {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 32px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.top-strip-left, .top-strip-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(0, 230, 118, 0.6);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+main {
+  position: relative;
+  z-index: 5;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px 80px;
+  text-align: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 64px;
+}
+
+.brand-logo {
+  width: 56px;
+  height: 56px;
+  color: var(--text-primary);
+}
+
+.brand-name {
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hero-headline {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+  max-width: 780px;
+}
+
+.hero-headline em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.hero-sub {
+  font-family: var(--font-ui);
+  font-size: clamp(15px, 1.6vw, 18px);
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  max-width: 560px;
+  margin-bottom: 56px;
+}
+
+.beta-callout {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border: 1px solid var(--border-default);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.02);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.beta-callout-date {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.waitlist-prompt {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  letter-spacing: 0.005em;
+}
+
+.email-form {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  width: 100%;
+  max-width: 460px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 3px;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.email-form:focus-within {
+  border-color: var(--accent-dim);
+  box-shadow: 0 0 0 1px var(--accent-dim);
+}
+
+.email-input {
+  flex: 1;
+  padding: 14px 16px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  letter-spacing: 0.01em;
+}
+
+.email-input::placeholder {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.email-submit {
+  padding: 14px 24px;
+  background: var(--accent);
+  color: var(--bg-base);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.email-submit:hover { background: #00FF80; }
+.email-submit:active { transform: translateY(1px); }
+.email-submit:disabled { background: var(--text-muted); cursor: not-allowed; }
+
+.form-message {
+  margin-top: 18px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  min-height: 16px;
+}
+
+.form-message.success { color: var(--accent); }
+.form-message.error { color: #FF5252; }
+
+.platforms {
+  margin-top: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.platforms-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.platforms-list {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.platform-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.platform-chip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.platform-chip[data-plat="ply"] .platform-chip-dot { background: var(--plat-ply); box-shadow: 0 0 6px rgba(77, 166, 255, 0.5); }
+.platform-chip[data-plat="kal"] .platform-chip-dot { background: var(--plat-kal); box-shadow: 0 0 6px rgba(0, 184, 90, 0.5); }
+.platform-chip[data-plat="plu"] .platform-chip-dot { background: var(--plat-plu); box-shadow: 0 0 6px rgba(155, 111, 212, 0.5); }
+
+footer {
+  position: relative;
+  z-index: 5;
+  padding: 24px 32px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+footer a { color: var(--text-muted); text-decoration: none; transition: color 0.15s ease; }
+footer a:hover { color: var(--text-secondary); }
+
+@media (max-width: 640px) {
+  .top-strip { padding: 14px 20px; font-size: 9px; }
+  .top-strip-right { display: none; }
+  main { padding: 32px 20px 60px; }
+  .brand { margin-bottom: 48px; gap: 14px; }
+  .brand-logo { width: 44px; height: 44px; }
+  .brand-name { font-size: 30px; }
+  .hero-eyebrow { font-size: 10px; margin-bottom: 16px; }
+  .hero-sub { margin-bottom: 40px; }
+  .email-form { flex-direction: column; }
+  .email-submit { padding: 14px; }
+  .platforms { margin-top: 64px; }
+  .platforms-list { gap: 18px; }
+  footer { padding: 18px 20px; flex-direction: column; gap: 10px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<div class="top-strip">
+  <div class="top-strip-left">
+    <span class="status-dot" aria-hidden="true"></span>
+    <span>Building in beta</span>
+  </div>
+  <div class="top-strip-right">
+    <span>v0.1 · Pre-release</span>
+  </div>
+</div>
+
+<main>
+  <div class="brand">
+    <svg class="brand-logo" viewBox="180 320 570 600" fill="currentColor" aria-hidden="true">
+      <path d="M 198.964 327.250 C 198.945 327.938, 240.232 369.551, 290.714 419.724 L 382.500 510.947 443.750 510.974 C 477.438 510.988, 504.998 510.663, 504.995 510.250 C 504.991 509.580, 408.709 413.932, 343.885 350.200 L 319.270 326 259.135 326 C 211.713 326, 198.992 326.264, 198.964 327.250 M 197.957 511.750 C 197.934 512.163, 263.071 577.395, 342.707 656.712 L 487.500 800.924 548.250 800.962 C 581.663 800.983, 609 800.645, 609 800.210 C 609 799.776, 601.688 792.236, 592.750 783.454 C 583.813 774.673, 527 718.440, 466.500 658.494 C 406 598.547, 347.692 540.837, 336.926 530.250 L 317.352 511 257.676 511 C 224.854 511, 197.981 511.337, 197.957 511.750 M 540.412 544.750 C 485.848 600.614, 482.167 604.462, 482.337 605.461 C 482.426 605.989, 496.130 619.912, 512.789 636.400 L 543.077 666.378 549.705 659.439 C 553.350 655.623, 571.229 637.200, 589.436 618.500 C 607.643 599.800, 625.329 581.552, 628.737 577.949 L 634.935 571.398 645.717 569.712 C 655.743 568.145, 670.634 566.126, 721.500 559.438 C 732.500 557.991, 741.681 556.632, 741.903 556.418 C 742.124 556.203, 741.125 555.099, 739.682 553.964 C 736.446 551.419, 702.963 527.116, 689.894 517.828 L 680.288 511 626.832 511 L 573.376 511 540.412 544.750 M 348.123 747.783 C 344.066 752.028, 325.868 770.575, 307.684 789 C 277.020 820.070, 256.578 840.845, 205.744 892.603 C 194.885 903.660, 186 913.222, 186 913.853 C 186 914.703, 201.515 915, 245.880 915 L 305.760 915 339.764 879.750 C 358.466 860.362, 383.462 834.600, 395.311 822.500 L 416.854 800.500 386.683 770.250 C 370.089 753.612, 356.285 740.015, 356.006 740.033 C 355.728 740.052, 352.180 743.539, 348.123 747.783"/>
+    </svg>
+    <span class="brand-name">Auspex</span>
+  </div>
+
+  <span class="hero-eyebrow">Prediction Market Terminal</span>
+
+  <h1 class="hero-headline">
+    Every market.<br>
+    <em>One terminal.</em>
+  </h1>
+
+  <p class="hero-sub">
+    A Bloomberg-style terminal for prediction markets. Live cross-platform pricing, real-time arbitrage detection, and serious tools for serious traders.
+  </p>
+
+  <div class="beta-callout">
+    Beta access begins
+    <span class="beta-callout-date">June 15, 2026</span>
+  </div>
+
+  <p class="waitlist-prompt">Add your email to join the waitlist.</p>
+
+  <form class="email-form" id="waitlist-form" autocomplete="off">
+    <input
+      type="email"
+      class="email-input"
+      id="waitlist-email"
+      placeholder="you@example.com"
+      required
+      autocomplete="email"
+      spellcheck="false"
+    >
+    <button type="submit" class="email-submit" id="waitlist-submit">Request Access</button>
+  </form>
+
+  <div class="form-message" id="form-message" role="status" aria-live="polite"></div>
+
+  <div class="platforms">
+    <span class="platforms-label">Aggregating live data from</span>
+    <div class="platforms-list">
+      <span class="platform-chip" data-plat="ply">
+        <span class="platform-chip-dot"></span>
+        Polymarket
+      </span>
+      <span class="platform-chip" data-plat="kal">
+        <span class="platform-chip-dot"></span>
+        Kalshi
+      </span>
+      <span class="platform-chip" data-plat="plu">
+        <span class="platform-chip-dot"></span>
+        Polymarket US
+      </span>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div>© 2026 Auspex</div>
+  <div>auspex-two.vercel.app</div>
+</footer>
+
+<script>
+(function() {
+  const form = document.getElementById('waitlist-form');
+  const input = document.getElementById('waitlist-email');
+  const submit = document.getElementById('waitlist-submit');
+  const msg = document.getElementById('form-message');
+
+  function setMessage(text, type) {
+    msg.textContent = text;
+    msg.className = 'form-message' + (type ? ' ' + type : '');
+  }
+
+  function isValidEmail(s) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = input.value.trim().toLowerCase();
+    if (!isValidEmail(email)) {
+      setMessage('Please enter a valid email address.', 'error');
+      return;
+    }
+
+    submit.disabled = true;
+    submit.textContent = 'Submitting...';
+    setMessage('', '');
+
+    try {
+      const r = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (r.ok) {
+        setMessage("\u2713 You're on the list. We'll be in touch.", 'success');
+        input.value = '';
+      } else if (r.status === 409) {
+        setMessage("\u2713 This email is already on the list.", 'success');
+        input.value = '';
+      } else {
+        setMessage("\u2713 Thanks \u2014 we'll be in touch.", 'success');
+        input.value = '';
+        console.warn('[waitlist] backend returned', r.status);
+      }
+    } catch (err) {
+      setMessage("\u2713 Thanks \u2014 we'll be in touch.", 'success');
+      input.value = '';
+      console.warn('[waitlist] submit failed:', err);
+    } finally {
+      submit.disabled = false;
+      submit.textContent = 'Request Access';
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
