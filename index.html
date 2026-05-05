@@ -182,7 +182,7 @@ main {
   line-height: 1.55;
   color: var(--text-secondary);
   max-width: 560px;
-  margin-bottom: 56px;
+  margin-bottom: 40px;
 }
 
 .beta-callout {
@@ -280,11 +280,11 @@ main {
 .form-message.error { color: #FF5252; }
 
 .platforms {
-  margin-top: 96px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
+  margin-bottom: 56px;
 }
 
 .platforms-label {
@@ -324,24 +324,6 @@ main {
 .platform-chip[data-plat="kal"] .platform-chip-dot { background: var(--plat-kal); box-shadow: 0 0 6px rgba(0, 184, 90, 0.5); }
 .platform-chip[data-plat="plu"] .platform-chip-dot { background: var(--plat-plu); box-shadow: 0 0 6px rgba(155, 111, 212, 0.5); }
 
-footer {
-  position: relative;
-  z-index: 5;
-  padding: 24px 32px;
-  border-top: 1px solid var(--border-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-footer a { color: var(--text-muted); text-decoration: none; transition: color 0.15s ease; }
-footer a:hover { color: var(--text-secondary); }
-
 @media (max-width: 640px) {
   .top-strip { padding: 14px 20px; font-size: 9px; }
   .top-strip-right { display: none; }
@@ -353,9 +335,8 @@ footer a:hover { color: var(--text-secondary); }
   .hero-sub { margin-bottom: 40px; }
   .email-form { flex-direction: column; }
   .email-submit { padding: 14px; }
-  .platforms { margin-top: 64px; }
+  .platforms { margin-bottom: 40px; }
   .platforms-list { gap: 18px; }
-  footer { padding: 18px 20px; flex-direction: column; gap: 10px; text-align: center; }
 }
 </style>
 </head>
@@ -390,6 +371,24 @@ footer a:hover { color: var(--text-secondary); }
     A Bloomberg-style terminal for prediction markets. Live cross-platform pricing, real-time arbitrage detection, and serious tools for serious traders.
   </p>
 
+  <div class="platforms">
+    <span class="platforms-label">Aggregating live data from</span>
+    <div class="platforms-list">
+      <span class="platform-chip" data-plat="ply">
+        <span class="platform-chip-dot"></span>
+        Polymarket
+      </span>
+      <span class="platform-chip" data-plat="kal">
+        <span class="platform-chip-dot"></span>
+        Kalshi
+      </span>
+      <span class="platform-chip" data-plat="plu">
+        <span class="platform-chip-dot"></span>
+        Polymarket US
+      </span>
+    </div>
+  </div>
+
   <div class="beta-callout">
     Beta access begins
     <span class="beta-callout-date">June 15, 2026</span>
@@ -411,30 +410,7 @@ footer a:hover { color: var(--text-secondary); }
   </form>
 
   <div class="form-message" id="form-message" role="status" aria-live="polite"></div>
-
-  <div class="platforms">
-    <span class="platforms-label">Aggregating live data from</span>
-    <div class="platforms-list">
-      <span class="platform-chip" data-plat="ply">
-        <span class="platform-chip-dot"></span>
-        Polymarket
-      </span>
-      <span class="platform-chip" data-plat="kal">
-        <span class="platform-chip-dot"></span>
-        Kalshi
-      </span>
-      <span class="platform-chip" data-plat="plu">
-        <span class="platform-chip-dot"></span>
-        Polymarket US
-      </span>
-    </div>
-  </div>
 </main>
-
-<footer>
-  <div>© 2026 Auspex</div>
-  <div>auspex-two.vercel.app</div>
-</footer>
 
 <script>
 (function() {
