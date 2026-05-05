@@ -198,7 +198,8 @@ main {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-secondary);
-  margin-bottom: 24px;
+  margin-top: 36px;
+  margin-bottom: 28px;
 }
 
 .beta-callout-date {
@@ -284,7 +285,6 @@ main {
   flex-direction: column;
   align-items: center;
   gap: 14px;
-  margin-bottom: 56px;
 }
 
 .platforms-label {
@@ -335,7 +335,6 @@ main {
   .hero-sub { margin-bottom: 40px; }
   .email-form { flex-direction: column; }
   .email-submit { padding: 14px; }
-  .platforms { margin-bottom: 40px; }
   .platforms-list { gap: 18px; }
 }
 </style>
@@ -371,6 +370,28 @@ main {
     A Bloomberg-style terminal for prediction markets. Live cross-platform pricing, real-time arbitrage detection, and serious tools for serious traders.
   </p>
 
+  <p class="waitlist-prompt">Add your email to join the waitlist.</p>
+
+  <form class="email-form" id="waitlist-form" autocomplete="off">
+    <input
+      type="email"
+      class="email-input"
+      id="waitlist-email"
+      placeholder="you@example.com"
+      required
+      autocomplete="email"
+      spellcheck="false"
+    >
+    <button type="submit" class="email-submit" id="waitlist-submit">Request Access</button>
+  </form>
+
+  <div class="form-message" id="form-message" role="status" aria-live="polite"></div>
+
+  <div class="beta-callout">
+    Beta access begins
+    <span class="beta-callout-date">June 15, 2026</span>
+  </div>
+
   <div class="platforms">
     <span class="platforms-label">Aggregating live data from</span>
     <div class="platforms-list">
@@ -388,28 +409,6 @@ main {
       </span>
     </div>
   </div>
-
-  <div class="beta-callout">
-    Beta access begins
-    <span class="beta-callout-date">June 15, 2026</span>
-  </div>
-
-  <p class="waitlist-prompt">Add your email to join the waitlist.</p>
-
-  <form class="email-form" id="waitlist-form" autocomplete="off">
-    <input
-      type="email"
-      class="email-input"
-      id="waitlist-email"
-      placeholder="you@example.com"
-      required
-      autocomplete="email"
-      spellcheck="false"
-    >
-    <button type="submit" class="email-submit" id="waitlist-submit">Request Access</button>
-  </form>
-
-  <div class="form-message" id="form-message" role="status" aria-live="polite"></div>
 </main>
 
 <script>
